@@ -46,6 +46,27 @@ CI (`.github/workflows/ci.yml`) runs lint + typecheck + tests on every push and 
 using `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` repo secrets. No keys are ever committed —
 see `.env.example`.
 
+## Handoff (current state)
+
+- Repo: <https://github.com/ai-dev-2024/corgi-au> (`main`). This is the kept project — the old
+  `VehicleBucket` folder is retired and can be deleted.
+- Code complete and verified: `tsc --noEmit` clean, 20/20 vitest tests pass (mocked decoder/OCM,
+  no live network in tests), `wrangler deploy --dry-run` bundles (153 KiB). `wrangler.toml` already
+  includes `compatibility_flags = ["nodejs_compat"]`, which `@cardog/corgi` requires on Workers.
+- OCM app `corgi-au` registered at openchargemap.org; key issued and **verified live** (Sydney query
+  returned real stations, e.g. Westfield Sydney). The key lives only in local `.dev.vars`
+  (gitignored) — it is not in the repo. If the key ever leaks, regenerate it from the OCM
+  dashboard ("Generate New API Key") and update `.dev.vars` + the Wrangler secret.
+- Still pending (needs `wrangler login` on this machine — the CLI is not authenticated yet):
+  1. `wrangler login`
+  2. `wrangler d1 create corgi-au` → paste the real `database_id` into `wrangler.toml`
+     (a placeholder is committed now), commit + push.
+  3. `wrangler d1 execute corgi-au --file=src/db/schema.sql`
+  4. `wrangler secret put OCM_API_KEY` (paste the key from `.dev.vars`).
+  5. `wrangler deploy`.
+  6. Optional: set `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` repo secrets to enable
+     CI auto-deploy on `main`.
+
 ## API docs
 
 ### `GET /decode/:vin`
