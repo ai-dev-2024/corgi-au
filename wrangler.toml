@@ -1,0 +1,16 @@
+name = "corgi-au"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "corgi-au"
+# Replace with your real ID after `wrangler d1 create corgi-au`
+database_id = "00000000-0000-0000-0000-000000000000"
+
+[triggers]
+crons = ["0 2 * * *"]
