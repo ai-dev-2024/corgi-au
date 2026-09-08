@@ -23,6 +23,21 @@ curl "https://corgi-au.ai-dev-2024.workers.dev/charging?lat=-33.8688&lng=151.209
 
 Daily cron refreshes AU capital charging data into D1.
 
+## Stack
+
+| Layer | Choice | Why |
+| ----- | ------ | --- |
+| Runtime | Cloudflare Workers | Edge compute, zero servers, cron triggers built in |
+| Framework | Hono + `secureHeaders()` | Tiny router, sane security defaults |
+| VIN data | `@cardog/corgi` + D1 adapter | NHTSA VPIC decode, no API calls |
+| Charging data | `@cardog/ocm-client` | Typed client for Open Charge Map |
+| Cache | D1 `charging_stations` table, 24h TTL | Cache-first reads, batched upserts |
+| Rate limiting | Workers KV, 20 live lookups/min/IP | Protects the OCM quota; cache hits exempt |
+| Cron | `0 2 * * *` over 8 AU capitals | Pre-warms the cache nightly |
+| Tests | Vitest, mocked decoder/OCM/D1/KV | No live network in tests (29 tests) |
+| CI/CD | GitHub Actions → `wrangler deploy` | Typecheck + tests on push, deploy on `main` |
+| Secrets | `.dev.vars` locally, Wrangler secrets live | Never committed (see `.env.example`) |
+
 ## Local dev
 
 ```sh

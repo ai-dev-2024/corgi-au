@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { secureHeaders } from "hono/secure-headers";
 import { handleDecode } from "./routes/decode.js";
 import { handleCharging } from "./routes/charging.js";
 import { refreshChargingData } from "./cron.js";
@@ -6,6 +7,7 @@ import { UI_HTML } from "./ui/page.js";
 import type { Env } from "./types.js";
 
 const app = new Hono<{ Bindings: Env }>();
+app.use(secureHeaders());
 
 app.get("/", (c) =>
   c.json({

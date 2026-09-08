@@ -21,4 +21,10 @@ describe("static UI", () => {
     expect(body.endpoints).toContain("/ui");
     expect(body.endpoints).toContain("/decode/:vin");
   });
+
+  it("responses carry security headers", async () => {
+    const res = await app.request("/health");
+    expect(res.headers.get("x-content-type-options")).toBe("nosniff");
+    expect(res.headers.get("x-frame-options")).toBe("SAMEORIGIN");
+  });
 });
