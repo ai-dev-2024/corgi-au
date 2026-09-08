@@ -9,8 +9,7 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "corgi-au"
-# Replace with your real ID after `wrangler d1 create corgi-au`
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "e9d74c30-49d8-4ea3-9402-d3327368a145"
 
 [triggers]
 crons = ["0 2 * * *"]
