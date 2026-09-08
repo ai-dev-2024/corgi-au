@@ -11,5 +11,9 @@ binding = "DB"
 database_name = "corgi-au"
 database_id = "e9d74c30-49d8-4ea3-9402-d3327368a145"
 
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "920847c6d3fd43edb9ee57da761a2294"
+
 [triggers]
 crons = ["0 2 * * *"]

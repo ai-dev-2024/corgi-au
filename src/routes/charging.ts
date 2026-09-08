@@ -1,5 +1,6 @@
 import { createOCMClient } from "@cardog/ocm-client";
 import type { ChargePoint } from "@cardog/ocm-client";
+import { checkRateLimit, type RateLimitKV } from "../lib/ratelimit.js";
 import { parseChargingParams } from "../lib/validate.js";
 import type { Env } from "../types.js";
 
@@ -115,6 +116,7 @@ export async function handleCharging(
   requestUrl: string | URL,
   env: Env,
   deps: ChargingDeps = {},
+  clientIp?: string,
 ): Promise<Response> {
   const url = typeof requestUrl === "string" ? new URL(requestUrl) : requestUrl;
   const parsed = parseChargingParams(url.searchParams);
@@ -130,6 +132,15 @@ export async function handleCharging(
 
   if (!env.OCM_API_KEY) {
     return json({ error: "Server misconfigured: OCM_API_KEY missing" }, 500);
+  }
+
+  // Throttle live OCM calls per IP (cached hits above already returned).
+  // Fail-open when KV is unbound (tests, local dev) or the IP is unknown.
+  if (env.RATE_LIMIT_KV && clientIp) {
+    const rl = await checkRateLimit(env.RATE_LIMIT_KV as unknown as RateLimitKV, clientIp, now);
+    if (!rl.allowed) {
+      return json({ error: "Rate limit exceeded, try again shortly" }, 429);
+    }
   }
 
   try {

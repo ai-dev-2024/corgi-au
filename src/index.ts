@@ -38,7 +38,9 @@ app.get("/ui", (c) => c.html(UI_HTML));
 
 app.get("/decode/:vin", (c) => handleDecode(c.req.param("vin"), c.env));
 
-app.get("/charging", (c) => handleCharging(c.req.url, c.env));
+app.get("/charging", (c) =>
+  handleCharging(c.req.url, c.env, {}, c.req.header("CF-Connecting-IP") ?? undefined),
+);
 
 app.notFound((c) => c.json({ error: "Not found" }, 404));
 

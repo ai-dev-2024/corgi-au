@@ -18,7 +18,7 @@ curl https://corgi-au.ai-dev-2024.workers.dev/decode/1HGCM82633A123456
 curl "https://corgi-au.ai-dev-2024.workers.dev/charging?lat=-33.8688&lng=151.2093&radius_km=10"
 ```
 
-`GET /charging` params: `lat` -90..90, `lng` -180..180, `radius_km` 1..100 (default 10). Statuses: 200 ok, 400 bad params, 404 no stations / no VIN data, 500 missing key or upstream failure.
+`GET /charging` params: `lat` -90..90, `lng` -180..180, `radius_km` 1..100 (default 10). Statuses: 200 ok, 400 bad params, 404 no stations / no VIN data, 429 rate limited (20 live lookups/min/IP), 500 missing key or upstream failure. Cache hits never count toward the limit.
 
 Daily cron refreshes AU capital charging data into D1.
 
