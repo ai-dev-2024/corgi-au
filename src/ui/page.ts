@@ -109,7 +109,7 @@ export const UI_HTML = "<!doctype html>\n" +
   "<h1>Car knowledge, <u>unleashed</u> for Australia.</h1>\n" +
   '<p class="lede">Decode any 17-character VIN and find EV chargers near any point. D1 cache first, live Open Charge Map fallback, nightly refresh of 8 capitals. Two endpoints, zero fluff.</p>\n' +
   '<div class="hero-cta"><a class="btn btn-accent" href="#vin">Decode a VIN</a><a class="btn btn-ghost" href="#charging">Find charging</a></div>\n' +
-  '<div class="proof"><div><strong>2</strong>endpoints</div><div><strong>8</strong>capitals cached</div><div><strong>24h</strong>cache TTL</div></div>\n' +
+  '<div class="proof"><div><strong id="stats-stations">…</strong>stations cached</div><div><strong>8</strong>capitals</div><div><strong>24h</strong>TTL</div></div>\n' +
   "</div>\n" +
   '<aside class="panel" aria-label="API status">\n' +
   "<h3>Live API</h3>\n" +
@@ -144,8 +144,20 @@ export const UI_HTML = "<!doctype html>\n" +
   "</div>\n" +
   '<label>Radius (km)<span class="hint">1–100, default 10</span>\n' +
   '<input id="radius-input" name="radius_km" inputmode="numeric" value="10"></label>\n' +
+  '<div><div class="hint" style="margin-bottom:.35rem">Jump to a capital</div><div class="chips" id="capital-chips">\n' +
+  '<button type="button" class="chip" data-lat="-33.8688" data-lng="151.2093">Sydney</button>\n' +
+  '<button type="button" class="chip" data-lat="-37.8136" data-lng="144.9631">Melbourne</button>\n' +
+  '<button type="button" class="chip" data-lat="-27.4698" data-lng="153.0251">Brisbane</button>\n' +
+  '<button type="button" class="chip" data-lat="-31.9505" data-lng="115.8605">Perth</button>\n' +
+  '<button type="button" class="chip" data-lat="-34.9285" data-lng="138.6007">Adelaide</button>\n' +
+  '<button type="button" class="chip" data-lat="-35.2809" data-lng="149.13">Canberra</button>\n' +
+  '<button type="button" class="chip" data-lat="-12.4634" data-lng="130.8456">Darwin</button>\n' +
+  '<button type="button" class="chip" data-lat="-42.8821" data-lng="147.3272">Hobart</button>\n' +
+  "</div></div>\n" +
   '<div class="btnrow"><button class="btn btn-dark" type="submit" id="charging-submit">Find stations</button>\n' +
-  '<button class="btn btn-ghost" type="button" id="geo-button">Use my location</button></div>\n' +
+  '<button class="btn btn-ghost" type="button" id="geo-button">Use my location</button>\n' +
+  '<button class="btn btn-ghost" type="button" id="copy-link-button">Copy link</button>\n' +
+  '<button class="btn btn-ghost" type="button" id="copy-curl-button">Copy curl</button></div>\n' +
   "</form>\n" +
   '<p class="status" id="charging-status" role="status"></p>\n' +
   '<div id="charging-result"></div>\n' +
