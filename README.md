@@ -12,6 +12,7 @@ Built on Cardog's open-source stack — every VIN decode goes through [`@cardog/
 - `GET /decode/:vin` — decode a 17-char VIN → make / model / year
 - `GET /charging?lat=&lng=&radius_km=` — stations near a point, D1 cache first, live OCM fallback
 - `GET /health` — `{ ok: true }`
+- `GET /stats` — cached station count + last refresh (powers the live counter on `/ui`)
 
 ```sh
 curl https://corgi-au.ai-dev-2024.workers.dev/decode/1HGCM82633A123456
@@ -32,7 +33,7 @@ echo "OCM_API_KEY=..." > .dev.vars  # free key at https://openchargemap.org/site
 npm run dev
 ```
 
-Deploy: `wrangler secret put OCM_API_KEY && wrangler deploy`. CI runs lint + typecheck + tests, deploys on `main`. Keys are never committed — see `.env.example`.
+Deploy: `wrangler secret put OCM_API_KEY && wrangler deploy`. CI runs typecheck + tests, deploys on `main`. Keys are never committed — see `.env.example`.
 
 ## Credits
 
