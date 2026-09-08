@@ -1,17 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { handleDecode } from "../src/routes/decode.js";
 import { handleCharging } from "../src/routes/charging.js";
+import { mockDb } from "./helpers.js";
 import type { Env } from "../src/types.js";
-
-// Minimal D1 stub: prepare().bind().all()/run(), plus batch([...])
-function mockDb(results: unknown[] = []) {
-  const run = vi.fn(async () => ({}));
-  const all = vi.fn(async () => ({ results }));
-  const batch = vi.fn(async (_statements: unknown[]) => []);
-  const bind = vi.fn(() => ({ all, run }));
-  const prepare = vi.fn(() => ({ bind }));
-  return { db: { prepare, batch } as unknown as D1Database, prepare, bind, all, run, batch };
-}
 
 function envWith(overrides: Partial<Env> = {}, results: unknown[] = []): { env: Env; mocks: ReturnType<typeof mockDb> } {
   const mocks = mockDb(results);

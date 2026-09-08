@@ -1,27 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import { AU_CAPITALS, refreshChargingData } from "../src/cron.js";
+import { mockDb, mockPoi } from "./helpers.js";
 import type { Env } from "../src/types.js";
-
-// D1 stub supporting the batched writeCache path (prepare/batch).
-function mockDb() {
-  const batch = vi.fn(async () => []);
-  const prepare = vi.fn(() => ({ bind: vi.fn() }));
-  return { db: { prepare, batch } as unknown as D1Database, prepare, batch };
-}
-
-function poi(id: number, title: string) {
-  return {
-    ID: id,
-    AddressInfo: { Title: title, Latitude: -33.87, Longitude: 151.21 },
-    Connections: [{ ConnectionType: { Title: "CCS Combo 2" } }],
-  };
-}
 
 describe("refreshChargingData (mocked OCM + D1, no network)", () => {
   it("refreshes every capital and reports updated/cities", async () => {
     const { db, batch } = mockDb();
     const env = { DB: db, OCM_API_KEY: "test-key" } as Env;
-    const searchPOI = vi.fn(async () => [poi(1, "Sydney Charger"), poi(2, "Second Charger")]);
+    const searchPOI = vi.fn(async () => [mockPoi(1, "Sydney Charger"), mockPoi(2, "Second Charger")]);
 
     const result = await refreshChargingData(env, {
       createClient: () => ({ searchPOI }) as never,
@@ -43,7 +29,7 @@ describe("refreshChargingData (mocked OCM + D1, no network)", () => {
     const failing = AU_CAPITALS[0];
     const searchPOI = vi.fn(async (params: Record<string, unknown>) => {
       if (params["latitude"] === failing.latitude) throw new Error("ocm down");
-      return [poi(7, "OK Charger")];
+      return [mockPoi(7, "OK Charger")];
     });
 
     const result = await refreshChargingData(env, {

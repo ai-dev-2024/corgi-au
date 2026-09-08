@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { app } from "../src/index.js";
+import type { Env } from "../src/types.js";
 
 describe("static UI", () => {
   it("GET /ui returns the UI as HTML with both views", async () => {
@@ -20,6 +21,24 @@ describe("static UI", () => {
     const body = (await res.json()) as { endpoints: string[] };
     expect(body.endpoints).toContain("/ui");
     expect(body.endpoints).toContain("/decode/:vin");
+  });
+
+  it("GET /stats returns live counts", async () => {
+    const first = vi.fn(async () => ({ stations: 25, last_refresh: 123 }));
+    const env = { DB: { prepare: () => ({ first }) } } as unknown as Env;
+    const res = await app.request("/stats", {}, env);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ stations: 25, last_refresh: 123, capitals: 8 });
+  });
+
+  it("GET /stats falls back to zeros when D1 fails", async () => {
+    const first = vi.fn(async () => {
+      throw new Error("db down");
+    });
+    const env = { DB: { prepare: () => ({ first }) } } as unknown as Env;
+    const res = await app.request("/stats", {}, env);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ stations: 0, last_refresh: null });
   });
 
   it("responses carry security headers", async () => {

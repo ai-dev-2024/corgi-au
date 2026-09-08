@@ -1,39 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { handleCharging } from "../src/routes/charging.js";
 import { checkRateLimit, rateLimitKey, RATE_LIMIT_MAX } from "../src/lib/ratelimit.js";
+import { mockDb, mockKv, mockPoi } from "./helpers.js";
 import type { Env } from "../src/types.js";
-
-function mockKv() {
-  const store = new Map<string, string>();
-  return {
-    store,
-    kv: {
-      get: async (k: string) => store.get(k) ?? null,
-      put: async (k: string, v: string) => {
-        store.set(k, v);
-      },
-    },
-  };
-}
-
-function mockDb(results: unknown[] = []) {
-  const batch = vi.fn(async () => []);
-  const all = vi.fn(async () => ({ results }));
-  const bind = vi.fn(() => ({ all }));
-  const prepare = vi.fn(() => ({ bind }));
-  return { db: { prepare, batch } as unknown as D1Database, batch };
-}
 
 const URL = "https://example.com/charging?lat=-33.8688&lng=151.2093&radius_km=10";
 const NOW = 1_700_000_000_000;
-
-function livePoi() {
-  return {
-    ID: 42,
-    AddressInfo: { Title: "Live Station", Latitude: -33.87, Longitude: 151.21 },
-    Connections: [{ ConnectionType: { Title: "CCS Combo 2" } }],
-  };
-}
 
 describe("rateLimitKey", () => {
   it("buckets per minute", () => {
@@ -62,7 +34,7 @@ describe("handleCharging rate limiting", () => {
     const { db } = mockDb([]);
     const env = { DB: db, OCM_API_KEY: "test-key", RATE_LIMIT_KV: kv } as unknown as Env;
     const deps = {
-      createClient: () => ({ searchPOI: async () => [livePoi()] }) as never,
+      createClient: () => ({ searchPOI: async () => [mockPoi(42, "Live Station")] }) as never,
       now: () => NOW,
     };
 

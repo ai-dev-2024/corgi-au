@@ -6,13 +6,9 @@
 /** VINs are 17 chars, A-Z0-9 minus I, O, Q (ISO 3779). */
 const VIN_RE = /^[A-HJ-NPR-Z0-9]{17}$/;
 
-export function normalizeVin(vin: string): string {
-  return vin.trim().toUpperCase();
-}
-
 export function isValidVin(vin: unknown): { ok: boolean; vin?: string; error?: string } {
   if (typeof vin !== "string") return { ok: false, error: "VIN must be a string" };
-  const v = normalizeVin(vin);
+  const v = vin.trim().toUpperCase();
   if (v.length !== 17) return { ok: false, error: "VIN must be exactly 17 characters" };
   if (!VIN_RE.test(v)) {
     return { ok: false, error: "VIN contains invalid characters (allowed: A-Z, 0-9 excluding I, O, Q)" };
