@@ -94,17 +94,17 @@ export async function readCache(
 }
 
 export async function writeCache(env: Env, stations: Station[], now: number): Promise<void> {
-  for (const s of stations) {
-    await env.DB.prepare(
+  if (stations.length === 0) return;
+  const statements = stations.map((s) =>
+    env.DB.prepare(
       `INSERT INTO charging_stations (ocm_id, name, lat, lng, connector_types, last_updated)
        VALUES (?1, ?2, ?3, ?4, ?5, ?6)
        ON CONFLICT(ocm_id) DO UPDATE SET
          name = excluded.name, lat = excluded.lat, lng = excluded.lng,
          connector_types = excluded.connector_types, last_updated = excluded.last_updated`,
-    )
-      .bind(s.id, s.name, s.lat, s.lng, JSON.stringify(s.connector_types), now)
-      .run();
-  }
+    ).bind(s.id, s.name, s.lat, s.lng, JSON.stringify(s.connector_types), now),
+  );
+  await env.DB.batch(statements);
 }
 
 /**

@@ -3,13 +3,14 @@ import { handleDecode } from "../src/routes/decode.js";
 import { handleCharging } from "../src/routes/charging.js";
 import type { Env } from "../src/types.js";
 
-// Minimal D1 stub: prepare().bind().all()/run()
+// Minimal D1 stub: prepare().bind().all()/run(), plus batch([...])
 function mockDb(results: unknown[] = []) {
   const run = vi.fn(async () => ({}));
   const all = vi.fn(async () => ({ results }));
+  const batch = vi.fn(async (_statements: unknown[]) => []);
   const bind = vi.fn(() => ({ all, run }));
   const prepare = vi.fn(() => ({ bind }));
-  return { db: { prepare } as unknown as D1Database, prepare, bind, all, run };
+  return { db: { prepare, batch } as unknown as D1Database, prepare, bind, all, run, batch };
 }
 
 function envWith(overrides: Partial<Env> = {}, results: unknown[] = []): { env: Env; mocks: ReturnType<typeof mockDb> } {
@@ -106,7 +107,8 @@ describe("handleCharging (mocked OCM + D1, no network)", () => {
     expect(searchPOI).toHaveBeenCalledWith(
       expect.objectContaining({ latitude: -33.8688, longitude: 151.2093, distanceunit: "km" }),
     );
-    expect(mocks.run).toHaveBeenCalled();
+    expect(mocks.batch).toHaveBeenCalledTimes(1);
+    expect(mocks.batch.mock.calls[0]?.[0]).toHaveLength(1);
   });
 
   it("404 when OCM returns nothing", async () => {
