@@ -4,6 +4,19 @@ import { handleCharging } from "../src/routes/charging.js";
 import { mockDb } from "./helpers.js";
 import type { Env } from "../src/types.js";
 
+function kvMock() {
+  const store = new Map<string, string>();
+  return {
+    store,
+    kv: {
+      get: vi.fn(async (key: string) => store.get(key) ?? null),
+      put: vi.fn(async (key: string, value: string) => {
+        store.set(key, value);
+      }),
+    },
+  };
+}
+
 function envWith(overrides: Partial<Env> = {}, results: unknown[] = []): { env: Env; mocks: ReturnType<typeof mockDb> } {
   const mocks = mockDb(results);
   return {
@@ -51,6 +64,63 @@ describe("handleDecode (mocked decoder, no network)", () => {
     });
     const res = await handleDecode(VIN, env, { initD1: vi.fn(), createDecoder });
     expect(res.status).toBe(500);
+  });
+});
+
+describe("handleDecode caching and infrastructure errors", () => {
+  const VIN = "1HGCM82633A123456";
+
+  function decodeOk(vin: string) {
+    return {
+      valid: true,
+      vin,
+      components: { vehicle: { make: "Honda", model: "Accord", year: 2003 } },
+      errors: [],
+    };
+  }
+
+  it("serves a repeat VIN from cache without calling the decoder again", async () => {
+    const { env } = envWith();
+    const { kv, store } = kvMock();
+    const decode = vi.fn(async () => decodeOk(VIN));
+    const deps = { initD1: vi.fn(), createDecoder: vi.fn(async () => ({ decode })), kv };
+
+    const first = await handleDecode(VIN, env, deps);
+    expect(first.status).toBe(200);
+    expect(store.size).toBe(1);
+
+    const second = await handleDecode(VIN, env, deps);
+    expect(second.status).toBe(200);
+    expect(await second.json()).toMatchObject({ vin: VIN, vehicle: { make: "Honda" } });
+    expect(decode).toHaveBeenCalledTimes(1); // second call came from KV
+  });
+
+  it("503 DATABASE_UNAVAILABLE on D1 quota errors, without caching the failure", async () => {
+    const { env } = envWith();
+    const { kv, store } = kvMock();
+    const decode = vi.fn(async () => ({
+      valid: false,
+      vin: VIN,
+      components: {},
+      errors: [{ code: "501", details: "D1_ERROR: row read limit exceeded" }],
+    }));
+    const res = await handleDecode(VIN, env, {
+      initD1: vi.fn(),
+      createDecoder: vi.fn(async () => ({ decode })),
+      kv,
+    });
+
+    expect(res.status).toBe(503);
+    expect(await res.json()).toMatchObject({ code: "DATABASE_UNAVAILABLE" });
+    expect(store.size).toBe(0); // never cached: VIN is not "unknown"
+  });
+
+  it("does not touch the cache for invalid VINs", async () => {
+    const { env } = envWith();
+    const { kv } = kvMock();
+    const res = await handleDecode("SHORT", env, { kv });
+    expect(res.status).toBe(400);
+    expect(kv.get).not.toHaveBeenCalled();
   });
 });
 

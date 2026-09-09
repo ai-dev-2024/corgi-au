@@ -13,7 +13,7 @@ Built on Cardog's open-source stack — every VIN decode goes through [`@cardog/
 | Method | Path | Description |
 | ------ | ---- | ----------- |
 | `GET` | `/ui` | Polished demo page (VIN form + charging search) |
-| `GET` | `/decode/:vin` | Decode a 17-char VIN → make / model / year |
+| `GET` | `/decode/:vin` | Decode a 17-char VIN → make / model / year (KV-cached per VIN) |
 | `GET` | `/charging?lat=&lng=&radius_km=` | Stations near a point, D1 cache first, live OCM fallback |
 | `GET` | `/stats` | Cached station count + last refresh (powers the live counter on `/ui`) |
 | `GET` | `/health` | `{ ok: true }` |
@@ -23,7 +23,7 @@ curl https://corgi-au.ai-dev-2024.workers.dev/decode/1HGCM82633A123456
 curl "https://corgi-au.ai-dev-2024.workers.dev/charging?lat=-33.8688&lng=151.2093&radius_km=10"
 ```
 
-`GET /charging` params: `lat` -90..90, `lng` -180..180, `radius_km` 1..100 (default 10). Statuses: 200 ok (`source: "cache" | "live"`), 400 bad params, 404 no stations / no VIN data, 429 rate limited (20 live lookups/min/IP, cache hits exempt), 500 missing key or upstream failure.
+`GET /charging` params: `lat` -90..90, `lng` -180..180, `radius_km` 1..100 (default 10). Statuses: 200 ok (`source: "cache" | "live"`), 400 bad params, 404 no stations / no VIN data, 429 rate limited (20 live lookups/min/IP, cache hits exempt), 503 VIN database temporarily unavailable (e.g. D1 quota), 500 missing key or upstream failure. Decodes are cached in KV per VIN for 7 days (clean misses 24h), so repeat lookups never re-scan the 1M-row VPIC database and stay inside D1's free-tier row-read quota.
 
 ## Architecture
 
@@ -43,7 +43,7 @@ curl "https://corgi-au.ai-dev-2024.workers.dev/charging?lat=-33.8688&lng=151.209
 | Rate limiting | Workers KV, 20 live lookups/min/IP | Protects the OCM quota; cache hits exempt |
 | Cron | `0 2 * * *` over 8 AU capitals | Pre-warms the cache nightly |
 | Observability | Workers observability + `wrangler tail` | Logs and traces in the dashboard |
-| Tests | Vitest, mocked decoder/OCM/D1/KV | No live network in tests (32 tests) |
+| Tests | Vitest, mocked decoder/OCM/D1/KV | No live network in tests (35 tests) |
 | CI/CD | GitHub Actions → `wrangler deploy` | Typecheck + tests on push, deploy on `main` |
 | Secrets | `.dev.vars` locally, Wrangler secrets live | Never committed (see `.env.example`) |
 
