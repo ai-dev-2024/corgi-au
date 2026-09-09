@@ -43,7 +43,7 @@ curl "https://corgi-au.ai-dev-2024.workers.dev/charging?lat=-33.8688&lng=151.209
 | Rate limiting | Workers KV, 20 live lookups/min/IP | Protects the OCM quota; cache hits exempt |
 | Cron | `0 2 * * *` over 8 AU capitals | Pre-warms the cache nightly |
 | Observability | Workers observability + `wrangler tail` | Logs and traces in the dashboard |
-| Tests | Vitest, mocked decoder/OCM/D1/KV | No live network in tests (30 tests) |
+| Tests | Vitest, mocked decoder/OCM/D1/KV | No live network in tests (32 tests) |
 | CI/CD | GitHub Actions → `wrangler deploy` | Typecheck + tests on push, deploy on `main` |
 | Secrets | `.dev.vars` locally, Wrangler secrets live | Never committed (see `.env.example`) |
 

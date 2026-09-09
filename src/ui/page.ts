@@ -12,6 +12,17 @@ export const UI_HTML = "<!doctype html>\n" +
   '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
   "<title>corgi-au — VIN + EV charging for Australia</title>\n" +
   '<meta name="description" content="Decode any VIN and find EV charging stations in Australia. Built on @cardog/corgi and @cardog/ocm-client, running on Cloudflare Workers + D1.">\n' +
+  '<meta name="theme-color" content="#0b0d10">\n' +
+  // Favicon: inline SVG matching the ◍ brand mark (dark rounded square, white ring + dot).
+  '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%230b0d10%27/%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%2714%27 fill=%27none%27 stroke=%27%23fff%27 stroke-width=%275%27/%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%274%27 fill=%27%23fff%27/%3E%3C/svg%3E">\n' +
+  // Open Graph / Twitter: shared links get a real preview card.
+  '<meta property="og:type" content="website">\n' +
+  '<meta property="og:title" content="corgi-au — VIN + EV charging for Australia">\n' +
+  '<meta property="og:description" content="Decode any VIN and find EV charging stations near any point. Live demo on Cloudflare Workers + D1, built on @cardog/corgi and @cardog/ocm-client.">\n' +
+  '<meta property="og:url" content="https://corgi-au.ai-dev-2024.workers.dev/ui">\n' +
+  '<meta name="twitter:card" content="summary">\n' +
+  '<meta name="twitter:title" content="corgi-au — VIN + EV charging for Australia">\n' +
+  '<meta name="twitter:description" content="Decode any VIN and find EV charging stations near any point. Live demo on Cloudflare Workers + D1, built on @cardog/corgi and @cardog/ocm-client.">\n' +
   "<style>\n" +
   ":root{--ink:#0b0d10;--muted:#5f6b76;--paper:#ffffff;--wash:#f4f5f6;--card:#ffffff;--line:#e8eaed;--accent:#ff4d00;--ok:#067647;--okbg:#ecfdf3;--err:#b42318;--errbg:#fef3f2;--radius:16px;--shadow:0 1px 2px rgba(11,13,16,.06),0 12px 32px rgba(11,13,16,.08);--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}\n" +
   "*{box-sizing:border-box}html{scroll-behavior:smooth}\n" +
@@ -86,7 +97,7 @@ export const UI_HTML = "<!doctype html>\n" +
   ".chip{font-size:.75rem;font-weight:700;background:var(--wash);border:1px solid var(--line);border-radius:999px;padding:.18rem .6rem}\n" +
   ".docs{background:var(--ink);color:#e6eaee;border-radius:20px;padding:1.6rem;margin:0 0 2.5rem}\n" +
   ".docs h2{margin:0 0 .4rem;letter-spacing:-.02em}.docs p{margin:0 0 1rem;color:#aeb6bf}\n" +
-  ".docs pre{background:#151a1f;border:1px solid #2a3138;border-radius:12px;padding:.9rem 1rem;overflow:auto;font-family:var(--mono);font-size:.82rem;line-height:1.5;margin:.6rem 0}\n" +
+  ".docs pre{background:#151a1f;border:1px solid #2a3138;border-radius:12px;padding:.9rem 1rem;overflow-x:auto;font-family:var(--mono);font-size:.82rem;line-height:1.5;margin:.6rem 0;white-space:pre-wrap;word-break:break-all}\n" +
   "footer{border-top:1px solid var(--line);padding:2rem 0;color:var(--muted);font-size:.88rem}\n" +
   ".fgrid{display:grid;gap:1.5rem}@media(min-width:800px){.fgrid{grid-template-columns:1.2fr 1fr 1fr 1fr}}\n" +
   "footer h4{margin:0 0 .6rem;color:var(--ink);font-size:.85rem;letter-spacing:.06em;text-transform:uppercase}\n" +
@@ -122,7 +133,13 @@ export const UI_HTML = "<!doctype html>\n" +
   '<div class="section"><div class="section-head"><h2>Tools</h2><p>Same JSON the API returns — try Sydney below.</p></div>\n' +
   '<div class="tools">\n' +
   '<section class="card" id="vin" aria-label="VIN lookup">\n' +
-  '<div class="card-top"><div class="icon">🔎</div><div><h3>VIN lookup</h3><p>ISO 3779 · no I, O, Q · e.g. <span class="mini"><code>1HGCM82633A123456</code></span></p></div></div>\n' +
+  '<div class="card-top"><div class="icon">🔎</div><div><h3>VIN lookup</h3><p>ISO 3779 · no I, O, Q · try a sample:</p></div></div>\n' +
+  '<div class="chiprow" style="display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 .8rem">\n' +
+  '<button type="button" class="chip" data-vin="1HGCM82633A123456">US · Honda</button>\n' +
+  '<button type="button" class="chip" data-vin="TMBNJ46Y964564271">EU · Škoda Fabia</button>\n' +
+  '<button type="button" class="chip" data-vin="WVGZZZ5NZEW069297">EU · VW Tiguan</button>\n' +
+  '<button type="button" class="chip" data-vin="VF1HJD40367321336">EU · Dacia Duster</button>\n' +
+  '</div>\n' +
   '<div class="card-body">\n' +
   '<form id="vin-form">\n' +
   '<label>Number plate<span class="hint">Auto-uppercased, 17 chars</span>\n' +
@@ -273,6 +290,33 @@ export const UI_HTML = "<!doctype html>\n" +
   "    }).catch(function () { setStatus(chStatus, 'error', 'Network error: could not reach the API.'); })\n" +
   "    .finally(function () { chSubmit.disabled = false; });\n" +
   "  });\n" +
+  // VIN sample chips: fill the form and submit.
+  "  document.querySelectorAll('.chiprow .chip[data-vin]').forEach(function (chip) {\n" +
+  "    chip.addEventListener('click', function () {\n" +
+  "      vinInput.value = chip.getAttribute('data-vin');\n" +
+  "      vinForm.dispatchEvent(new Event('submit', { cancelable: true }));\n" +
+  "    });\n" +
+  "  });\n" +
+  // Copy buttons: shareable link / curl one-liner for the current search.
+  "  function copyText(text, okMsg) {\n" +
+  "    if (navigator.clipboard && navigator.clipboard.writeText) {\n" +
+  "      navigator.clipboard.writeText(text).then(function () { setStatus(chStatus, 'ok', okMsg); }, function () { setStatus(chStatus, 'error', 'Copy failed - your browser blocked clipboard access.'); });\n" +
+  "    } else { setStatus(chStatus, 'error', 'Clipboard is not available in this browser.'); }\n" +
+  "  }\n" +
+  "  var copyLinkButton = document.getElementById('copy-link-button');\n" +
+  "  if (copyLinkButton) {\n" +
+  "    copyLinkButton.addEventListener('click', function () {\n" +
+  "      var params = new URLSearchParams({ lat: latInput.value.trim(), lng: lngInput.value.trim(), radius_km: (radiusInput.value.trim() || '10') });\n" +
+  "      copyText(location.origin + '/charging?' + params.toString(), 'Link copied.');\n" +
+  "    });\n" +
+  "  }\n" +
+  "  var copyCurlButton = document.getElementById('copy-curl-button');\n" +
+  "  if (copyCurlButton) {\n" +
+  "    copyCurlButton.addEventListener('click', function () {\n" +
+  "      var params = new URLSearchParams({ lat: latInput.value.trim(), lng: lngInput.value.trim(), radius_km: (radiusInput.value.trim() || '10') });\n" +
+  "      copyText('curl \"' + location.origin + '/charging?' + params.toString() + '\"', 'curl command copied.');\n" +
+  "    });\n" +
+  "  }\n" +
   "})();\n" +
   "</script>\n" +
   "</body>\n" +
