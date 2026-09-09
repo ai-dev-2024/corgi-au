@@ -137,7 +137,7 @@ export const UI_HTML = "<!doctype html>\n" +
   '<div class="chiprow" style="display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 .8rem">\n' +
   '<button type="button" class="chip" data-vin="1HGCM82633A123456">US · Honda</button>\n' +
   '<button type="button" class="chip" data-vin="TMBNJ46Y964564271">EU · Škoda Fabia</button>\n' +
-  '<button type="button" class="chip" data-vin="WVGZZZ5NZEW069297">EU · VW Tiguan</button>\n' +
+  '<button type="button" class="chip" data-vin="WBA3B1C50DF463616">EU · BMW 320i</button>\n' +
   '<button type="button" class="chip" data-vin="VF1HJD40367321336">EU · Dacia Duster</button>\n' +
   '</div>\n' +
   '<div class="card-body">\n' +
